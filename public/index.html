@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="./CSS/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <title>WebChess</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="nav-element">
+        <div class="nav-title-container">
+            <h1><i class="fa-solid fa-chess"></i></h1>
+            <h1 style="margin-top: 7px;">WebChess</h1>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="board" style="max-width: 44%;"></div>
+        <div class="sidebar logged-in" id="sidebar">
+
+            <!-- initial sidebar content allows for hosting/joining the game -->
+            <div id="init-game-content" class="beforegame">
+                <h1>Game Creation</h1>
+
+                <h2 class="initialization-content">Join a room</h2>
+                <input type="text" id="join-id-input" placeholder="Input game ID...">
+                <input type="text" id="join-pw-input" placeholder="Input host password...">
+                <button id="join-send"><i class="fa fa-paper-plane"></i></button>
+
+                <h2 class="initialization-content">Host a room</h2>
+                <input type="text" id="host-pw-input" placeholder="Create password...">
+                <button id="host-send"><i class="fa fa-paper-plane"></i></button>
+            </div>
+
+            <!-- Game sidebar content shows current turn, game id, moves, and chat -->
+            <div class="sidebar-content duringgame" style="display: none;">
+                <div class="sidebar-title">
+                    <h1>Game Info</h1>
+                </div>
+                <div class="sidebar-content-element">
+                    <h3>Game ID:</h3>
+                    <p id="game-id"> N/A </p>
+                </div>
+                <div class="sidebar-content-element">
+                    <h3>Turn:</h3>
+                    <p id="turn">White</p>
+                </div>
+                <div class="sidebar-content-element">
+                    <h3>Moves:</h3>
+                    <div id="move-list"></div>
+                </div>
+                <div class="chat">
+                    <div class="chat-title">
+                        <h3>Chat</h3>
+                    </div>
+                    <div id="chat">
+                        <div id="chat-window">
+                            <ul id="chat-messages"></ul>
+                        </div>
+                        <div id="chat-input">
+                            <input type="text" id="message-input" placeholder="Type your message..." />
+                            <button id="chat-send">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- endgame sidebar content shows who won, stats, and options to play again -->
+            <div class="endgame aftergame" style="display: none;">
+                <div id="winner-output" style="display: none; text-align: center;">
+                    <h2>🏆 You Win! 🎉</h2>
+                    <p>Congratulations on your victory!</p>
+                </div>
+                <div id="loser-output" style="display: none; text-align: center;">
+                    <h2>😞 You Lose</h2>
+                    <p>Better luck next time!</p>
+                </div>
+                <div id="draw-output" style="display: none; text-align: center;">
+                    <h2>🤝 Game Draw</h2>
+                    <p>It's a tie! Well played!</p>
+                </div>
+                <div id="gameover-options">
+                    <button id="new-game-btn">New Game</button>
+                    <button id="exit-btn">Exit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBz9ucdMV7rIpEid4PoUFZ-7RcX3mKFMWg",
+            authDomain: "chess-bfb04.firebaseapp.com",
+            projectId: "chess-bfb04",
+            storageBucket: "chess-bfb04.firebasestorage.app",
+            messagingSenderId: "771678275960",
+            appId: "1:771678275960:web:4f6634d804e0c890e5a08d",
+            measurementId: "G-HK1HY6M261"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const game = new Chess();
+            const board = Chessboard('board', {
+                position: 'start',
+                draggable: true,
+                onDrop: handleMove
+            });
+
+            let gameId = null;
+            let playerColor = null;
+            let gameRef = null;
+            let chatRef = null;
+
+            // initialization buttons
+            const joinInput = document.getElementById('join-id-input');
+            const joinPwInput = document.getElementById('join-pw-input');
+            const joinButton = document.getElementById('join-send');
+            const hostPwInput = document.getElementById('host-pw-input');
+            const hostButton = document.getElementById('host-send');
+            
+            // sidebar elements
+            const chatMessages = document.getElementById('chat-messages')
+            const moveList = document.getElementById('move-list');
+            const gameIDElement = document.getElementById('game-id');
+
+            // UI view state management
+            const UIBeforeGame = document.querySelectorAll('.beforegame');
+            const UIDuringGame = document.querySelectorAll('.duringgame');
+            const UIAfterGame = document.querySelectorAll('.aftergame');
+
+            async function updateGameState(state) {
+                if (gameRef) {
+                    await updateDoc(gameRef, state);
+                }
+            }
+
+            hostButton.addEventListener('click', async () => {
+                const hostPassword = hostPwInput.value.trim();
+                if (!hostPassword) {
+                    alert('Please enter a password to host the game.');
+                    return;
+                }
+
+                gameId = Math.random().toString(36).substr(2, 9);
+                gameIDElement.innerHTML = gameId;
+                gameRef = doc(db, 'games', gameId);
+
+                await setDoc(gameRef, {
+                    moves: [],
+                    turn: 'w',
+                    players: { host: hostPassword, join: null },
+                    gameOver: false,
+                    messages: []
+                });
+
+                playerColor = 'w';
+                alert(`Game hosted! Share Game ID: ${gameId}`);
+                setupSnapshotListener();
+                UIBeforeGame.forEach(item => item.style.display = 'none');
+                UIDuringGame.forEach(item => item.style.display = 'block');
+                UIAfterGame.forEach(item => item.style.display = 'none');
+            });
+
+            joinButton.addEventListener('click', async () => {
+                const joinId = joinInput.value.trim();
+                const joinPassword = joinPwInput.value.trim();
+
+                if (!joinId || !joinPassword) {
+                    alert('Please enter the Game ID and password.');
+                    return;
+                }
+
+                gameRef = doc(db, 'games', joinId);
+                const gameSnapshot = await getDoc(gameRef);
+
+                if (!gameSnapshot.exists()) {
+                    alert('Game not found!');
+                    return;
+                }
+
+                const gameData = gameSnapshot.data();
+                if (gameData.players.join) {
+                    alert('Game is already full!');
+                    return;
+                }
+
+                if (gameData.players.host !== joinPassword) {
+                    alert('Incorrect password!');
+                    return;
+                }
+
+                gameId = joinId;
+                playerColor = 'b';
+                gameIDElement.innerHTML = joinId;
+
+                await updateDoc(gameRef, {
+                    'players.join': 'joined'
+                });
+
+                alert('Joined the game successfully!');
+                setupSnapshotListener();
+                UIBeforeGame.forEach(item => item.style.display = 'none');
+                UIDuringGame.forEach(item => item.style.display = 'block');
+                UIAfterGame.forEach(item => item.style.display = 'none');
+            });
+
+            function setupSnapshotListener() {
+                if (!gameRef) {
+                    console.error('Game reference not set.');
+                    return;
+                }
+
+                onSnapshot(gameRef, (doc) => {
+                    if (doc.exists()) {
+                        console.log('Snapshot triggered:', doc.data());
+                        const data = doc.data();
+                        const moves = data.moves || [];
+
+                        game.reset();
+                        moves.forEach((move) => game.move(move));
+                        board.position(game.fen());
+
+                        // update the movelist to reflect the moves made during the game
+                        console.log("These are the moves", moves);
+                        moveList.innerHTML = '';
+                        moves.forEach((move, index) => {
+                            const p = document.createElement('p');
+                            p.textContent = `${move},`;
+                            moveList.appendChild(p);
+                        });
+
+                        const turnDisplay = document.getElementById('turn');
+                        if (turnDisplay) {
+                            turnDisplay.innerText = data.turn === 'w' ? 'White' : 'Black';
+                        }
+                        
+                        chatMessages.innerHTML = '';
+
+                        // Display each message from the messages array
+                        data.messages.forEach((message) => {
+                            const li = document.createElement('li');
+                            li.className = message.sender;  // 'w' or 'b' for white or black
+                            li.textContent = `${message.sender === 'w' ? 'White' : 'Black'}: ${message.text}`;
+                            chatMessages.appendChild(li);
+                        });
+                        
+                        // Scroll to the bottom of the chat window
+                        const chatWindow = document.getElementById('chat-window');
+                        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+                        if (data.gameOver) {
+                            alert(data.gameOverMessage || 'Game Over!');
+                        }
+                    } else {
+                        console.error('Document does not exist.');
+                    }
+                });
+            }
+
+            async function handleMove(source, target) {
+                if (game.turn() !== playerColor) {
+                    return 'snapback';
+                }
+
+                const move = game.move({ from: source, to: target, promotion: 'q' });
+                if (!move) return 'snapback';
+
+                await updateGameState({
+                    moves: game.history(),
+                    turn: game.turn(),
+                    gameOver: game.game_over(),
+                    gameOverMessage: game.in_checkmate()
+                        ? `${game.turn() === 'w' ? 'Black' : 'White'} wins by checkmate!`
+                        : game.in_draw()
+                        ? 'Game ends in a draw.'
+                        : null
+                });
+            }
+
+            // Send a chat message
+            document.getElementById('chat-send').addEventListener('click', async () => {
+                const input = document.getElementById('message-input');
+                const messageText = input.value.trim();
+                if (messageText) {
+                    const message = {
+                        sender: playerColor,  // 'w' or 'b' depending on the player
+                        text: messageText
+                    };
+
+                    // Fetch the current game data
+                    const gameSnapshot = await getDoc(gameRef);
+                    const data = gameSnapshot.data();
+
+                    // Add the message to the messages array in the game document
+                    await updateDoc(gameRef, {
+                        messages: [...data.messages, message]  // Append the new message
+                    });
+
+                    input.value = '';  // Clear the input field
+                }
+            });
+        });
+    </script>
+</body>
+</html>
