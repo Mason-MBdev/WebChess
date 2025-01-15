@@ -1,14 +1,13 @@
 # WebChess
 
-WebChess is a simple online chess app where you can host a game, and start playing chess in real-time with other players. It also features a chat system so you can get into your opponents head during the match.
+WebChess is an online chess service, allowing visitors to host and join real-time chess matches.
 
 ---
 
 ## Features
 
-- **Play with Friends**: Host & join games in 3 clicks or less.
+- **Play online easily**: Host & join games, very little setup required.
 - **Real-Time Updates**: See your opponent's moves instantly.
-- **Move History**: Track all moves made during the game.
 - **In-Game Chat**: Talk to your opponent while you play.
 
 ---
@@ -30,7 +29,7 @@ WebChess is a simple online chess app where you can host a game, and start playi
 ### Host a Game
 
 1. Enter a password and click **Host**.
-2. Share the game ID and password with your friend.
+2. Share the game ID and password with your opponent.
 3. Wait for them to join, and the game will start once they are connected.
 
 ### Join a Game
@@ -49,11 +48,11 @@ WebChess is a simple online chess app where you can host a game, and start playi
 
 ## Built With
 
-- **HTML5, CSS3**: Handles the structure and design of the app.
+- **HTML5, CSS3**: Structure and styling of the UI.
 - **JavaScript**: Handles the functionality of the app through networking and high level game logic.
+- - **Firebase**: Keeps the game data updated in real time.
+- - **Chess.js**: Manages lower level game rules and logic.
 - **Chessboard.js**: Handles the chessboard display.
-- **Chess.js**: Manages game rules and logic.
-- **Firebase**: Keeps the game data updated in real time.
 - **Font Awesome**: Nice icons for the UI.
 
 ---
@@ -63,6 +62,6 @@ WebChess is a simple online chess app where you can host a game, and start playi
 - Add a player ranking system.
 - Add support for spectating matches.
 - Improve mobile compatibility.
-- Add more customization options for the board.
+- Add customization options for the UI.
 
 ---
