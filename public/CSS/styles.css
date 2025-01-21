@@ -1,21 +1,28 @@
 :root {
-    --main-bg-color: rgb(30, 29, 33); /* Dark background */
-    --board-bg-color: rgb(54, 54, 58);
-    --sidebar-bg-color: rgb(54, 54, 58);
-    --accent-color: rgb(94, 130, 180); /* Accent for buttons and highlights */
-    --text-color: rgb(255, 255, 255); /* Light text for contrast */
+    --main-bg-color: rgb(40, 33, 33);
+    --board-bg-color: rgb(57, 57, 66);
+    --sidebar-bg-color: rgb(57, 57, 66);
+    --accent-color: rgb(94, 130, 180);
+    --text-color: rgb(255, 255, 255);
     --muted-text-color: rgb(150, 150, 150);
     --border-color: rgb(100, 100, 100);
     --gap-small: 0.5rem;
     --gap-medium: 1rem;
     --gap-large: 2rem;
     --font-size-base: 1rem;
-    --border-radius: 0.5rem; /* Rounded corners */
+    --border-radius: 0.5rem;
     --nav-bg-color: rgb(44, 44, 56);
+    --button-color: rgb(171, 171, 214);
 }
 
 h1 {
     margin: 0;
+    font-size: 1.5rem;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.2rem;
 }
 
 body {
@@ -29,20 +36,19 @@ body {
 
 .main-content {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--gap-medium);
-    padding: var(--gap-medium);
     flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: var(--gap-large);
+    gap: var(--gap-medium);
+    height: 80vh;
 }
 
-@media (max-width: 768px) {
-    .main-content {
-        flex-direction: column;
-    }
-
-    .board {
-        width: 90%;
-    }
+button{
+    background-color: var(--button-color);
+    max-width: 387.2px;
+    height: 35px;
+    width: 90px;
 }
 
 .nav-title-container {
@@ -55,14 +61,25 @@ body {
 #board {
     flex: 2;
     background-color: var(--board-bg-color);
-    border-radius: var(--border-radius);
     padding: var(--gap-medium);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-color);
     font-size: 1.5rem;
-    border: 1px rgb(102, 102, 102) solid;
+    border: 1px rgb(80, 80, 80) solid;
+    max-height: 33vw;
+    max-width: 33vw;
+    min-width: 406px;
+    min-height: 406px;
+    box-shadow: 0px 0px 14px rgba(0, 0, 0, 0.9); /* Add shadow to all sides to create an outset effect */
+
+}
+
+#init-game-content {
+    display: flex;
+    flex-direction: column;
+    width: auto;
 }
 
 .initialization-content {
@@ -73,14 +90,15 @@ body {
 .sidebar {
     flex: 1;
     background-color: var(--sidebar-bg-color);
-    border-radius: var(--border-radius);
     padding: var(--gap-medium);
     display: flex;
     flex-direction: column;
     gap: var(--gap-medium);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     height: auto;
-    border: 1px rgb(102, 102, 102) solid;
+    border: 1px rgb(80, 80, 80) solid;
+    margin-bottom: 40px;
+    max-width: 400px; 
 }
 
 .sidebar-title h2 {
@@ -113,12 +131,13 @@ body {
 }
 
 #chat {
-    width: 300px;
-    height: 400px;
+    width: 200px;
+    height: 300px;
     border: 1px solid #000000;
     display: flex;
     flex-direction: column;
     margin-top: 20px;
+    height: 250px;
 }
 #chat-window {
     flex: 1;
@@ -130,6 +149,7 @@ body {
     list-style: none;
     padding: 0;
     margin: 0;
+    font-size: 11px;
 }
 #chat-messages li {
     margin-bottom: 5px;
@@ -150,9 +170,11 @@ body {
 }
 #message-input {
     flex: 1;
-    padding: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    width: 140px;
+    font-size: 11px;
+    margin-bottom: 0px; 
 }
 #send-message {
     padding: 5px 10px;
@@ -172,9 +194,10 @@ body {
     justify-content: space-between;
     padding-left: var(--gap-large);
     padding-right: var(--gap-large);
-    flex-wrap: wrap; /* Allow children to wrap when cramped */
-    border-bottom: 1px rgb(56, 56, 56) solid;
+    flex-wrap: wrap;
+    border-bottom: 1px rgb(80, 80, 80) solid;
     height: 62px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
 
 .nav-button-container {
@@ -198,4 +221,52 @@ body {
 .nav-button-container button:hover {
     background-color: #ffffff;
     color: black;
+}
+
+input {
+    max-width: 275px;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    font-size: var(--font-size-base);
+    color: var(--text-color);
+    background-color: white;
+    margin-bottom: var(--gap-small);
+    color: black;
+
+}
+
+.highlight-legal {
+    box-shadow: inset 0 0 3px 3px green;
+}
+
+@media (max-width: 690px) {
+    .main-content {
+        flex-direction: column;
+        padding: 0.35em;
+        padding-top: 1em;
+        height: auto;
+    }
+
+    #board {
+        max-height: 89vw;
+        min-height: 89vw;
+        max-width: 89.1vw;
+        min-width: 89.1vw;
+    }
+
+    .sidebar {
+        max-width: 89.1vw;
+        min-width: 89.1vw;
+    }
+
+    #init-game-content {
+        display: flex;
+        flex-direction: column;
+        width: 75vw;
+    }
+
+    #chat {
+        width: 89.1vw;
+    }
 }

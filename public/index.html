@@ -16,30 +16,30 @@
     <div class="nav-element">
         <div class="nav-title-container">
             <h1><i class="fa-solid fa-chess"></i></h1>
-            <h1 style="margin-top: 7px;">WebChess</h1>
+            <h1 style="margin-top: 5px;">WebChess</h1>
         </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Content window-->
     <div class="main-content">
-        <div id="board" style="max-width: 44%;"></div>
+        <div id="board"></div>
         <div class="sidebar logged-in" id="sidebar">
 
-            <!-- initial sidebar content allows for hosting/joining the game -->
+            <!-- INTITIAL SIDEBAR CONTENT ----------------------------------------------------------------------- -->
             <div id="init-game-content" class="beforegame">
-                <h1>Game Creation</h1>
+                <h1>Start a game</h1>
 
-                <h2 class="initialization-content">Join a room</h2>
+                <h2 class="initialization-content">Host:</h2>
+                <input type="text" id="host-pw-input" placeholder="Create password...">
+                <button id="host-send">Host <i class="fa fa-paper-plane"></i></button>
+
+                <h2 class="initialization-content">Join:</h2>
                 <input type="text" id="join-id-input" placeholder="Input game ID...">
                 <input type="text" id="join-pw-input" placeholder="Input host password...">
-                <button id="join-send"><i class="fa fa-paper-plane"></i></button>
-
-                <h2 class="initialization-content">Host a room</h2>
-                <input type="text" id="host-pw-input" placeholder="Create password...">
-                <button id="host-send"><i class="fa fa-paper-plane"></i></button>
+                <button id="join-send">Join <i class="fa fa-paper-plane"></i></button>
             </div>
 
-            <!-- Game sidebar content shows current turn, game id, moves, and chat -->
+            <!-- GAME SIDEBAR CONTENT ----------------------------------------------------------------------- -->
             <div class="sidebar-content duringgame" style="display: none;">
                 <div class="sidebar-title">
                     <h1>Game Info</h1>
@@ -51,10 +51,6 @@
                 <div class="sidebar-content-element">
                     <h3>Turn:</h3>
                     <p id="turn">White</p>
-                </div>
-                <div class="sidebar-content-element">
-                    <h3>Moves:</h3>
-                    <div id="move-list"></div>
                 </div>
                 <div class="chat">
                     <div class="chat-title">
@@ -72,7 +68,7 @@
                 </div>
             </div>
 
-            <!-- endgame sidebar content shows who won, stats, and options to play again -->
+            <!-- ENDGAME SIDEBAR CONTENT----------------------------------------------------------------------- -->
             <div class="endgame aftergame" style="display: none;">
                 <div id="winner-output" style="display: none; text-align: center;">
                     <h2>🏆 You Win! 🎉</h2>
@@ -98,6 +94,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
     <script type="module">
+        // -------------------------------
+        // ** FIREBASE CONFIG ** 
+        // -------------------------------
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
@@ -114,13 +114,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // -------------------------------
+        // ** DOM CONTENT INIT ** 
+        // -------------------------------
+
         document.addEventListener('DOMContentLoaded', async () => {
             const game = new Chess();
+            console.log(game);
             const board = Chessboard('board', {
                 position: 'start',
                 draggable: true,
-                onDrop: handleMove
+                onDrop: handleMove,
+                onDragStart: onDragStart,
             });
+            var $board = $('#board')
+            var squareToHighlight = null
+            var squareClass = 'square-55d63'
+            $(window).resize(board.resize)
 
             let gameId = null;
             let playerColor = null;
@@ -139,16 +149,14 @@
             const moveList = document.getElementById('move-list');
             const gameIDElement = document.getElementById('game-id');
 
-            // UI view state management
+            // meta UI state management
             const UIBeforeGame = document.querySelectorAll('.beforegame');
             const UIDuringGame = document.querySelectorAll('.duringgame');
             const UIAfterGame = document.querySelectorAll('.aftergame');
 
-            async function updateGameState(state) {
-                if (gameRef) {
-                    await updateDoc(gameRef, state);
-                }
-            }
+            // -------------------------------
+            // ** UI AND GAME FLOW MANAGEMENT ** 
+            // -------------------------------
 
             hostButton.addEventListener('click', async () => {
                 const hostPassword = hostPwInput.value.trim();
@@ -220,6 +228,16 @@
                 UIAfterGame.forEach(item => item.style.display = 'none');
             });
 
+            // -------------------------------
+            // ** FIREBASE SHARED GAME STATE MANAGEMENT ** 
+            // -------------------------------
+
+            async function updateGameState(state) {
+                if (gameRef) {
+                    await updateDoc(gameRef, state);
+                }
+            }
+
             function setupSnapshotListener() {
                 if (!gameRef) {
                     console.error('Game reference not set.');
@@ -236,15 +254,6 @@
                         moves.forEach((move) => game.move(move));
                         board.position(game.fen());
 
-                        // update the movelist to reflect the moves made during the game
-                        console.log("These are the moves", moves);
-                        moveList.innerHTML = '';
-                        moves.forEach((move, index) => {
-                            const p = document.createElement('p');
-                            p.textContent = `${move},`;
-                            moveList.appendChild(p);
-                        });
-
                         const turnDisplay = document.getElementById('turn');
                         if (turnDisplay) {
                             turnDisplay.innerText = data.turn === 'w' ? 'White' : 'Black';
@@ -252,20 +261,38 @@
                         
                         chatMessages.innerHTML = '';
 
-                        // Display each message from the messages array
                         data.messages.forEach((message) => {
                             const li = document.createElement('li');
-                            li.className = message.sender;  // 'w' or 'b' for white or black
+                            li.className = message.sender;
                             li.textContent = `${message.sender === 'w' ? 'White' : 'Black'}: ${message.text}`;
                             chatMessages.appendChild(li);
                         });
                         
-                        // Scroll to the bottom of the chat window
                         const chatWindow = document.getElementById('chat-window');
                         chatWindow.scrollTop = chatWindow.scrollHeight;
 
                         if (data.gameOver) {
-                            alert(data.gameOverMessage || 'Game Over!');
+                            if (data.gameWinner) {
+                                alert(`${data.gameWinner === 'w' ? 'White' : 'Black'} wins!`);
+                            } else {
+                                alert('The game is a draw!');
+                            }
+                        }
+
+                        if (data.gameOver == true) {
+                            UIBeforeGame.forEach(item => item.style.display = 'none');
+                            UIDuringGame.forEach(item => item.style.display = 'none');
+                            UIAfterGame.forEach(item => item.style.display = 'block');
+
+                            if (data.gameWinner) {
+                                if (data.gameWinner === playerColor) {
+                                    document.getElementById('winner-output').style.display = 'block';
+                                } else {
+                                    document.getElementById('loser-output').style.display = 'block';
+                                }
+                            } else {
+                                document.getElementById('draw-output').style.display = 'block';
+                            }
                         }
                     } else {
                         console.error('Document does not exist.');
@@ -273,46 +300,91 @@
                 });
             }
 
+            // -------------------------------
+            // ** CHESSBOARD INTERACTION ** 
+            // -------------------------------
+
             async function handleMove(source, target) {
-                if (game.turn() !== playerColor) {
+                removeHighlights('black');
+                removeHighlights('white');
+
+                if (game.turn() !== playerColor) return 'snapback';
+
+                const move = game.move({ from: source, to: target, promotion: 'q' });
+                if (move === null) {
+                    alert('Illegal move, move the piece back to its original position.');
                     return 'snapback';
                 }
 
-                const move = game.move({ from: source, to: target, promotion: 'q' });
-                if (!move) return 'snapback';
+                // Determine game state and message
+                let gameOver = false;
+                let gameWinner = null;
 
+                if (game.in_checkmate()) {
+                    gameOver = true;
+                    gameWinner = playerColor;
+                } else if (game.in_draw()) {
+                    gameOver = true;
+                } else if (game.in_stalemate()) {
+                    gameOver = true;
+                }
+
+                // Update the game state
                 await updateGameState({
                     moves: game.history(),
                     turn: game.turn(),
-                    gameOver: game.game_over(),
-                    gameOverMessage: game.in_checkmate()
-                        ? `${game.turn() === 'w' ? 'Black' : 'White'} wins by checkmate!`
-                        : game.in_draw()
-                        ? 'Game ends in a draw.'
-                        : null
+                    gameOver,
+                    gameWinner
                 });
             }
 
-            // Send a chat message
+            function onDragStart(source, piece, position, orientation) {
+                removeHighlights('black');
+                removeHighlights('white');
+
+                if (
+                    (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                    (game.turn() === 'b' && piece.search(/^w/) !== -1)
+                ) {
+                    return false;
+                }
+
+                var legalMoves = game.moves({
+                    square: source,
+                    verbose: true,
+                });
+
+                legalMoves.forEach((move) => {
+                    $board.find('.square-' + move.to).addClass('highlight-legal');
+                });
+            }
+
+            // -------------------------------
+            // ** UTILITY FUNCTIONS ** 
+            // -------------------------------
+
+            function removeHighlights(color) {
+                $board.find('.' + squareClass).removeClass('highlight-' + color);
+                $board.find('.' + squareClass).removeClass('highlight-legal'); // Remove legal move highlights
+            }
+
             document.getElementById('chat-send').addEventListener('click', async () => {
                 const input = document.getElementById('message-input');
                 const messageText = input.value.trim();
                 if (messageText) {
                     const message = {
-                        sender: playerColor,  // 'w' or 'b' depending on the player
+                        sender: playerColor,
                         text: messageText
                     };
 
-                    // Fetch the current game data
                     const gameSnapshot = await getDoc(gameRef);
                     const data = gameSnapshot.data();
 
-                    // Add the message to the messages array in the game document
                     await updateDoc(gameRef, {
-                        messages: [...data.messages, message]  // Append the new message
+                        messages: [...data.messages, message]
                     });
 
-                    input.value = '';  // Clear the input field
+                    input.value = '';
                 }
             });
         });
