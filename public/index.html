@@ -11,6 +11,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
     <title>WebChess</title>
 </head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5NDDY4FDVL"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5NDDY4FDVL');
+</script>
+
 <body>
     <!-- Navbar -->
     <div class="nav-element">
@@ -18,16 +28,24 @@
             <h1><i class="fa-solid fa-chess"></i></h1>
             <h1 style="margin-top: 5px;">WebChess</h1>
         </div>
+
+        <div class="nav-button-container">
+            <button id="login-navbtn" class="logged-out">Log in&nbsp;&nbsp;&nbsp;<i class="fa fa-sign-in"></i></button>
+            <button id="signup-navbtn" class="logged-out">Sign up&nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus"></i></button>
+            <button id="profile-navbtn" class="logged-in" style="display: none;">Profile&nbsp;&nbsp;&nbsp;<i class="fa-solid fa-user-tie"></i></i></button>
+            <button id="signout-navbtn" class="logged-in" style="display: none;">Sign out&nbsp;&nbsp;&nbsp;<i class="fa fa-sign-out"></i></button>
+        </div>
     </div>
 
     <!-- Main Content window-->
     <div class="main-content">
         <div id="board"></div>
-        <div class="sidebar logged-in" id="sidebar">
+        <div class="sidebar" id="sidebar">
 
             <!-- INTITIAL SIDEBAR CONTENT ----------------------------------------------------------------------- -->
             <div id="init-game-content" class="beforegame">
                 <h1>Start a game</h1>
+                <p id="login-status-message"> You are in guest mode. Sign in to save history and stats.</p>
 
                 <h2 class="initialization-content">Host:</h2>
                 <input type="text" id="host-pw-input" placeholder="Create password...">
@@ -72,322 +90,74 @@
             <div class="endgame aftergame" style="display: none;">
                 <div id="winner-output" style="display: none; text-align: center;">
                     <h2>🏆 You Win! 🎉</h2>
-                    <p>Congratulations on your victory!</p>
+                    <p>Congratulations on your victory</p>
                 </div>
                 <div id="loser-output" style="display: none; text-align: center;">
                     <h2>😞 You Lose</h2>
-                    <p>Better luck next time!</p>
+                    <p>Better luck next time</p>
                 </div>
                 <div id="draw-output" style="display: none; text-align: center;">
                     <h2>🤝 Game Draw</h2>
-                    <p>It's a tie! Well played!</p>
+                    <p>It's a tie, well played</p>
                 </div>
                 <div id="gameover-options">
                     <button id="new-game-btn">New Game</button>
-                    <button id="exit-btn">Exit</button>
                 </div>
             </div>
+        </div>
+    </div>
+    <!-- popup for login / signup -->
+    <div class="popup login-popup">
+        <span id="close-login-popup" class="close-popup">&times;</span>
+        <h2 style="color: white;">Log in</h2><br/>
+        <form id="login-form">
+            <div class="input">
+                <input type="email" id="login-email" placeholder = "Email" required />
+            </div>
+            <div style="margin-bottom: 20px;" >
+                <input type="password" id="login-password" placeholder = "Password" required />
+            </div>
+            <button class="popup-button">Log in</button>
+        </form>
+    </div>
+
+    <div class="popup signup-popup">
+        <span id="close-signup-popup" class="close-popup">&times;</span>
+        <h2 style="color: white;">Sign up</h2><br/>
+        <form id="signup-form">
+            <div class="input">
+                <input type="text" id="signup-username" placeholder="Username" required />
+            </div>
+            <div class="input">
+                <input type="email" id="signup-email" placeholder="Email" required />
+            </div>
+            <div style="margin-bottom: 20px;" >
+                <input type="password" id="signup-password" placeholder="Password" required />
+            </div>
+            <button class="popup-button">Sign up</button>
+        </form>
+    </div>
+
+    <div class="popup profile-popup">
+        <span id="close-profile-popup" class="close-popup">&times;</span>
+        <h2 style="color: white;">Profile</h2><br/>
+        <h3 id="userEmail">Email: </h3>
+        <div class="stats-container">
+            <h3>Statistics</h3>
+            <p id="userWins">Wins: 0</p>
+            <p id="userLosses">Losses: 0</p>
+            <p id="userDraws">Draws: 0</p>
+            <p id="userWinRate">Win Rate: 0%</p>
+        </div>
+        <div class="match-history">
+            <h3>Recent Matches</h3>
+            <div id="matchHistoryList"></div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-    <script type="module">
-        // -------------------------------
-        // ** FIREBASE CONFIG ** 
-        // -------------------------------
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBz9ucdMV7rIpEid4PoUFZ-7RcX3mKFMWg",
-            authDomain: "chess-bfb04.firebaseapp.com",
-            projectId: "chess-bfb04",
-            storageBucket: "chess-bfb04.firebasestorage.app",
-            messagingSenderId: "771678275960",
-            appId: "1:771678275960:web:4f6634d804e0c890e5a08d",
-            measurementId: "G-HK1HY6M261"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // -------------------------------
-        // ** DOM CONTENT INIT ** 
-        // -------------------------------
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const game = new Chess();
-            console.log(game);
-            const board = Chessboard('board', {
-                position: 'start',
-                draggable: true,
-                onDrop: handleMove,
-                onDragStart: onDragStart,
-            });
-            var $board = $('#board')
-            var squareToHighlight = null
-            var squareClass = 'square-55d63'
-            $(window).resize(board.resize)
-
-            let gameId = null;
-            let playerColor = null;
-            let gameRef = null;
-            let chatRef = null;
-
-            // initialization buttons
-            const joinInput = document.getElementById('join-id-input');
-            const joinPwInput = document.getElementById('join-pw-input');
-            const joinButton = document.getElementById('join-send');
-            const hostPwInput = document.getElementById('host-pw-input');
-            const hostButton = document.getElementById('host-send');
-            
-            // sidebar elements
-            const chatMessages = document.getElementById('chat-messages')
-            const moveList = document.getElementById('move-list');
-            const gameIDElement = document.getElementById('game-id');
-
-            // meta UI state management
-            const UIBeforeGame = document.querySelectorAll('.beforegame');
-            const UIDuringGame = document.querySelectorAll('.duringgame');
-            const UIAfterGame = document.querySelectorAll('.aftergame');
-
-            // -------------------------------
-            // ** UI AND GAME FLOW MANAGEMENT ** 
-            // -------------------------------
-
-            hostButton.addEventListener('click', async () => {
-                const hostPassword = hostPwInput.value.trim();
-                if (!hostPassword) {
-                    alert('Please enter a password to host the game.');
-                    return;
-                }
-
-                gameId = Math.random().toString(36).substr(2, 9);
-                gameIDElement.innerHTML = gameId;
-                gameRef = doc(db, 'games', gameId);
-
-                await setDoc(gameRef, {
-                    moves: [],
-                    turn: 'w',
-                    players: { host: hostPassword, join: null },
-                    gameOver: false,
-                    messages: []
-                });
-
-                playerColor = 'w';
-                alert(`Game hosted! Share Game ID: ${gameId}`);
-                setupSnapshotListener();
-                UIBeforeGame.forEach(item => item.style.display = 'none');
-                UIDuringGame.forEach(item => item.style.display = 'block');
-                UIAfterGame.forEach(item => item.style.display = 'none');
-            });
-
-            joinButton.addEventListener('click', async () => {
-                const joinId = joinInput.value.trim();
-                const joinPassword = joinPwInput.value.trim();
-
-                if (!joinId || !joinPassword) {
-                    alert('Please enter the Game ID and password.');
-                    return;
-                }
-
-                gameRef = doc(db, 'games', joinId);
-                const gameSnapshot = await getDoc(gameRef);
-
-                if (!gameSnapshot.exists()) {
-                    alert('Game not found!');
-                    return;
-                }
-
-                const gameData = gameSnapshot.data();
-                if (gameData.players.join) {
-                    alert('Game is already full!');
-                    return;
-                }
-
-                if (gameData.players.host !== joinPassword) {
-                    alert('Incorrect password!');
-                    return;
-                }
-
-                gameId = joinId;
-                playerColor = 'b';
-                gameIDElement.innerHTML = joinId;
-
-                await updateDoc(gameRef, {
-                    'players.join': 'joined'
-                });
-
-                alert('Joined the game successfully!');
-                setupSnapshotListener();
-                UIBeforeGame.forEach(item => item.style.display = 'none');
-                UIDuringGame.forEach(item => item.style.display = 'block');
-                UIAfterGame.forEach(item => item.style.display = 'none');
-            });
-
-            // -------------------------------
-            // ** FIREBASE SHARED GAME STATE MANAGEMENT ** 
-            // -------------------------------
-
-            async function updateGameState(state) {
-                if (gameRef) {
-                    await updateDoc(gameRef, state);
-                }
-            }
-
-            function setupSnapshotListener() {
-                if (!gameRef) {
-                    console.error('Game reference not set.');
-                    return;
-                }
-
-                onSnapshot(gameRef, (doc) => {
-                    if (doc.exists()) {
-                        console.log('Snapshot triggered:', doc.data());
-                        const data = doc.data();
-                        const moves = data.moves || [];
-
-                        game.reset();
-                        moves.forEach((move) => game.move(move));
-                        board.position(game.fen());
-
-                        const turnDisplay = document.getElementById('turn');
-                        if (turnDisplay) {
-                            turnDisplay.innerText = data.turn === 'w' ? 'White' : 'Black';
-                        }
-                        
-                        chatMessages.innerHTML = '';
-
-                        data.messages.forEach((message) => {
-                            const li = document.createElement('li');
-                            li.className = message.sender;
-                            li.textContent = `${message.sender === 'w' ? 'White' : 'Black'}: ${message.text}`;
-                            chatMessages.appendChild(li);
-                        });
-                        
-                        const chatWindow = document.getElementById('chat-window');
-                        chatWindow.scrollTop = chatWindow.scrollHeight;
-
-                        if (data.gameOver) {
-                            if (data.gameWinner) {
-                                alert(`${data.gameWinner === 'w' ? 'White' : 'Black'} wins!`);
-                            } else {
-                                alert('The game is a draw!');
-                            }
-                        }
-
-                        if (data.gameOver == true) {
-                            UIBeforeGame.forEach(item => item.style.display = 'none');
-                            UIDuringGame.forEach(item => item.style.display = 'none');
-                            UIAfterGame.forEach(item => item.style.display = 'block');
-
-                            if (data.gameWinner) {
-                                if (data.gameWinner === playerColor) {
-                                    document.getElementById('winner-output').style.display = 'block';
-                                } else {
-                                    document.getElementById('loser-output').style.display = 'block';
-                                }
-                            } else {
-                                document.getElementById('draw-output').style.display = 'block';
-                            }
-                        }
-                    } else {
-                        console.error('Document does not exist.');
-                    }
-                });
-            }
-
-            // -------------------------------
-            // ** CHESSBOARD INTERACTION ** 
-            // -------------------------------
-
-            async function handleMove(source, target) {
-                removeHighlights('black');
-                removeHighlights('white');
-
-                if (game.turn() !== playerColor) return 'snapback';
-
-                const move = game.move({ from: source, to: target, promotion: 'q' });
-                if (move === null) {
-                    alert('Illegal move, move the piece back to its original position.');
-                    return 'snapback';
-                }
-
-                // Determine game state and message
-                let gameOver = false;
-                let gameWinner = null;
-
-                if (game.in_checkmate()) {
-                    gameOver = true;
-                    gameWinner = playerColor;
-                } else if (game.in_draw()) {
-                    gameOver = true;
-                } else if (game.in_stalemate()) {
-                    gameOver = true;
-                }
-
-                // Update the game state
-                await updateGameState({
-                    moves: game.history(),
-                    turn: game.turn(),
-                    gameOver,
-                    gameWinner
-                });
-            }
-
-            function onDragStart(source, piece, position, orientation) {
-                removeHighlights('black');
-                removeHighlights('white');
-
-                if (
-                    (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-                    (game.turn() === 'b' && piece.search(/^w/) !== -1)
-                ) {
-                    return false;
-                }
-
-                var legalMoves = game.moves({
-                    square: source,
-                    verbose: true,
-                });
-
-                legalMoves.forEach((move) => {
-                    $board.find('.square-' + move.to).addClass('highlight-legal');
-                });
-            }
-
-            // -------------------------------
-            // ** UTILITY FUNCTIONS ** 
-            // -------------------------------
-
-            function removeHighlights(color) {
-                $board.find('.' + squareClass).removeClass('highlight-' + color);
-                $board.find('.' + squareClass).removeClass('highlight-legal'); // Remove legal move highlights
-            }
-
-            document.getElementById('chat-send').addEventListener('click', async () => {
-                const input = document.getElementById('message-input');
-                const messageText = input.value.trim();
-                if (messageText) {
-                    const message = {
-                        sender: playerColor,
-                        text: messageText
-                    };
-
-                    const gameSnapshot = await getDoc(gameRef);
-                    const data = gameSnapshot.data();
-
-                    await updateDoc(gameRef, {
-                        messages: [...data.messages, message]
-                    });
-
-                    input.value = '';
-                }
-            });
-        });
-    </script>
+    <script type="module" src="./JS/app.js"></script>
 </body>
 </html>

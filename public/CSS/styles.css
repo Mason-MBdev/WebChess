@@ -34,6 +34,70 @@ body {
     font-size: var(--font-size-base);
 }
 
+.popup {
+    color: #ffffff;
+    display: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(59, 59, 68);
+    z-index: 9998;
+    margin: 57px auto;
+    padding: 20px;
+    width: 270px;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+    border-top: 1px solid #888;
+}
+
+.close-popup {
+    font-size: 32px;
+    font-weight: bold;
+    float: right;
+    cursor: pointer;
+    margin-top: -5px;
+}
+
+.close-popup:hover,
+.close-popup:focus {
+    color: #000000;
+    text-decoration: none;
+}
+
+.popup input[type="text"],
+.popup input[type="number"],
+.popup input[type="email"],
+.popup input[type="password"]{
+    background-color: #c0bebe;
+    color: #000000;
+    padding: 10px;
+    border: #000000 1px solid;
+    border-radius: 5px;
+    width: calc(100% - 22px);
+    font-size: 16px;
+    margin-left: 0;
+}
+
+.popup-button {
+    background-color: rgb(59, 59, 68);
+    color: white;
+    border: 1px solid white;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    width: 125px;
+    margin-left: 0;
+}
+
+.popup-button:hover {
+    background-color: #ffffff;
+    color: black;
+}
+
 .main-content {
     display: flex;
     flex-direction: row;
@@ -47,7 +111,6 @@ body {
 button{
     background-color: var(--button-color);
     max-width: 387.2px;
-    height: 35px;
     width: 90px;
 }
 
@@ -56,6 +119,14 @@ button{
     flex-direction: row;
     align-items: center;
     gap: 10px;
+}
+
+.board-b72b1 {
+    touch-action: none;
+}
+
+.piece-417db {
+    touch-action: none;
 }
 
 #board {
@@ -72,8 +143,8 @@ button{
     max-width: 33vw;
     min-width: 406px;
     min-height: 406px;
-    box-shadow: 0px 0px 14px rgba(0, 0, 0, 0.9); /* Add shadow to all sides to create an outset effect */
-
+    box-shadow: 0px 0px 14px rgba(0, 0, 0, 0.9);
+    touch-action: none;
 }
 
 #init-game-content {
@@ -97,7 +168,6 @@ button{
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     height: auto;
     border: 1px rgb(80, 80, 80) solid;
-    margin-bottom: 40px;
     max-width: 400px; 
 }
 
@@ -126,8 +196,29 @@ button{
 }
 
 #move-list {
-    display: flex; 
-    flex-direction: row;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.move-entry {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.move-number {
+    color: var(--muted-text-color);
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+.white-move {
+    color: var(--text-color);
+}
+
+.black-move {
+    color: var(--text-color);
+    margin-left: 5px;
 }
 
 #chat {
@@ -186,6 +277,13 @@ button{
     cursor: pointer;
 }
 
+#gameover-options {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-large);
+    justify-content: center;
+}
+
 .nav-element {
     background-color: var(--nav-bg-color);
     display: flex;
@@ -196,31 +294,40 @@ button{
     padding-right: var(--gap-large);
     flex-wrap: wrap;
     border-bottom: 1px rgb(80, 80, 80) solid;
-    height: 62px;
+    height: 57px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
 
 .nav-button-container {
     display: flex;
-    flex-direction: row;
-    gap: var(--gap-large);
+    justify-content: left;
+    background-color: rgb(44, 44, 56);
+    color: white;
+    font-size: 10px;
+    margin: 0;
+    align-items: center;
 }
 
 .nav-button-container button {
     background-color: rgb(44, 44, 56);
     color: white;
-    border: 1px solid white;
+    border: 1px solid white;    
     font-size: 13px;
     cursor: pointer;
     padding: 5px 10px;
     border-radius: 5px;
     transition: background-color 0.3s;
     width: 125px;
+    margin: 5px;
 }
 
 .nav-button-container button:hover {
     background-color: #ffffff;
     color: black;
+}
+
+.nav-button-container h2{
+    margin: 0;
 }
 
 input {
@@ -258,6 +365,7 @@ input {
     .sidebar {
         max-width: 89.1vw;
         min-width: 89.1vw;
+        margin-bottom: 40px;
     }
 
     #init-game-content {
@@ -269,4 +377,178 @@ input {
     #chat {
         width: 89.1vw;
     }
+    
+    /* Improved mobile navigation like Gradebook */
+    .nav-element {
+        flex-direction: row;
+        justify-content: space-between;
+        height: auto;
+        padding: 12px 15px;
+        flex-wrap: nowrap;
+        gap: 10px;
+    }
+
+    .nav-title-container {
+        flex: 0;
+        flex-direction: row;
+        gap: 10px;
+        margin-right: auto;
+    }
+    
+    /* Hide the text content of h1 but keep the icon */
+    .nav-title-container h1 {
+        font-size: 0;
+    }
+    
+    .nav-title-container h1 i {
+        font-size: 24px;
+    }
+    
+    .nav-button-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+    
+    .nav-button-container button {
+        width: auto;
+        padding: 6px 10px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    
+    /* Make popups full screen on mobile */
+    .popup,
+    .login-popup,
+    .signup-popup,
+    .profile-popup {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 30px 15px;
+        box-sizing: border-box;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 9999;
+        overflow-y: auto;
+    }
+    
+    .close-popup,
+    #close-login-popup,
+    #close-signup-popup,
+    #close-profile-popup {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+    
+    /* Ensure form elements are properly sized on mobile */
+    .popup input[type="text"],
+    .popup input[type="number"],
+    .popup input[type="email"],
+    .popup input[type="password"] {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .popup-button {
+        width: 100%;
+        margin: 10px 0;
+    }
+}
+
+.stats-container {
+    margin: 20px 0;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.match-history {
+    margin-top: 20px;
+}
+
+#matchHistoryList {
+    max-height: 50vh; /* 50% of viewport height */
+    overflow-y: auto;
+    padding-right: 5px;
+    margin-bottom: 15px;
+}
+
+/* Adjust scrolling behavior on mobile */
+@media (max-width: 690px) {
+    #matchHistoryList {
+        max-height: 40vh; /* Slightly smaller on mobile */
+    }
+}
+
+.match-entry {
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.match-entry.win {
+    border-left: 3px solid #4CAF50;
+}
+
+.match-entry.loss {
+    border-left: 3px solid #f44336;
+}
+
+.match-entry.draw {
+    border-left: 5px solid var(--muted-text-color);
+}
+
+/* PGN Section Styles */
+.pgn-section {
+    margin-top: 10px;
+}
+
+.pgn-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.pgn-toggle,
+.pgn-copy {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.pgn-toggle:hover,
+.pgn-copy:hover {
+    background-color: rgb(74, 100, 140);
+}
+
+.pgn-content {
+    margin-top: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    overflow-x: auto;
+}
+
+.pgn-content pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.profile-popup .match-history {
+    margin-top: 20px;
+    max-height: calc(70vh - 200px); /* Account for other profile elements */
+    overflow-y: auto;
 }
